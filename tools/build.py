@@ -441,7 +441,7 @@ def page(lang, pg):
     <nav id="nav" class="nav" aria-label="{e(t["menu"])}">
       <ul>{navl}</ul>
       <div class="lang" role="group" aria-label="{e(t["lang_label"])}">{sw}</div>
-      {btn_wa(t, "btn btn-wa sm")}
+      <a class="hdr-cta" href="{W}" target="_blank" rel="noopener">{e(t["cta_short_h"])}</a>
     </nav>
   </div>
 </header>
