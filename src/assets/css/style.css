@@ -519,3 +519,11 @@ h2{color:var(--navy)}
   .hero2 .hero-t{padding-bottom:2.25rem}
   .hero-kids{max-width:500px}
 }
+
+/* ================= Font seperti thursinaiibs.sch.id: Manrope (judul) + Open Sans (isi) ================= */
+:root{--f:"Open Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--fh:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif}
+h1,h2,h3,h4,.btn,.hdr-cta,.nav li a,.bname,.kick,.eyebrow,.motto,.stats dd,.lv-b strong,.lv-age,.link,.tag,.letter,.why .n,.num,.notice strong,.accr-t,.lvchips li,.ftile figcaption,.jump a,.flow-start,.flow-end,.sign,.lang a,.faq summary{font-family:var(--fh)}
+h1,h2{font-weight:800;letter-spacing:-.03em}
+h3,h4{font-weight:700;letter-spacing:-.01em}
+.kick,.eyebrow{letter-spacing:.13em;font-weight:800}
+body{line-height:1.65}
