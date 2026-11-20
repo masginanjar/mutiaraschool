@@ -499,3 +499,23 @@ h2{color:var(--navy)}
   .hero2::after{background:linear-gradient(90deg,rgba(16,18,40,.8) 0%,rgba(16,18,40,.6) 45%,rgba(16,18,40,.15) 100%)}
   .hero-kids{width:100%;max-width:640px;margin-right:0}
 }
+
+/* ================= Hero lebih ringkas ================= */
+.hero2{padding-top:1.5rem}
+.hero2 h1{font-size:clamp(1.6rem,4.4vw,2.5rem);margin-bottom:.25em}
+.hero2 .eyebrow{font-size:.72rem;margin-bottom:.3rem}
+.hero2 .motto{font-size:.85rem;margin-bottom:.6rem}
+.hero2 .lead{font-size:.95rem;max-width:34rem;margin-bottom:0}
+.hero2 .btns{margin:1rem 0}
+.hero2 .btn{min-height:46px;padding:.6rem 1.2rem;font-size:.9rem}
+.hero2 .accr{padding:.6rem .85rem;gap:.7rem;max-width:26rem}
+.hero2 .accr-badge{width:48px}
+.hero2 .accr-t{font-size:.92rem}
+.hero2 .accr-s{font-size:.78rem;margin-bottom:.3rem}
+.hero2 .lvchips li{font-size:.72rem;padding:.1rem .55rem}
+.hero-kids{width:min(100%,400px)}
+@media (min-width:900px){
+  .hero2{padding-top:2rem}
+  .hero2 .hero-t{padding-bottom:2.25rem}
+  .hero-kids{max-width:500px}
+}
