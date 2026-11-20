@@ -1,27 +1,35 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Bangun situs statis ke folder public_html/. Jalankan: python3 tools/build.py"""
+"""Bangun website statis Mutiara School Bali ke public_html/.
+Jalankan: python3 tools/build.py && python3 tools/check.py
+Isi teks: tools/sitedata.py. Foto asli Canva: src/assets/img/canva/. Foto galeri lama: src/assets/img/foto/."""
 import html, json, os, posixpath, re, shutil, sys
 from urllib.parse import quote
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from content import *  # noqa
-from pages import P, SLUG, HERO_IMG, XALT
+from sitedata import *  # noqa  (tools/sitedata.py)
+sys.path.insert(0, os.path.join(HERE, "old"))
+from pages import XALT  # alt teks foto galeri lama  # noqa
+from content import T as OLDT  # noqa
 
 ROOT = os.path.dirname(HERE)
+SRC = os.path.join(ROOT, "src", "assets")
 OUT = os.path.join(ROOT, "public_html")
-LANGS = ["en", "id"]          # en = default di "/"
-PAGES = ["home", "about", "programs", "facilities", "gallery", "admissions", "contact"]
-SEC = dict(about="tentang", programs="program", facilities="fasilitas", gallery="galeri", admissions="pendaftaran", contact="kontak")
 e = html.escape
+SIZES = {}  # kunci gambar -> (w, h, folder, small_w)
 
 WA_ICON = ('<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" '
            'stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 0 0-7.8 13.5L3 21l4.6-1.2A9 9 0 1 0 12 3Z"/><path d="M9 8.5c0 3.5 3 6.5 6.5 6.5"/></svg>')
-CHECK = ('<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.6" '
+CHECK = ('<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.8" '
          'stroke-linecap="round" stroke-linejoin="round" d="m5 12.5 4.5 4.5L19 7.5"/></svg>')
+ARROW = '<span class="arr" aria-hidden="true">→</span>'
+OLD_GAL = ["g1", "hero", "g3", "x2", "g5", "g6", "about", "x0", "x4", "x5", "x8", "x9", "sd", "smp", "x13", "paud", "x1", "x3",
+           "x24", "x28", "g2", "x18", "x19", "x20", "x21", "x23", "g4", "x25", "x26", "g7"]
+NEW_GAL = ["narasi", "language", "research", "literacy", "leadership", "sentra-art", "sentra-cook", "sentra-block"]
 
 
+# ------------------------------------------------------------------ util
 def upath(lang, pg):
     base = T[lang]["path"]
     return base if pg == "home" else base + SLUG[lang][pg] + "/"
@@ -36,58 +44,112 @@ def wa(t, extra=""):
     return e("https://wa.me/%s?text=%s" % (WA, quote(t["wa_msg"] + extra)))
 
 
-ASSET = [""]   # prefix relatif ke akar situs untuk halaman yang sedang dibangun
-SIZE = {"hero_l": (1600, 940), "logo": (96, 120)}
-
-
-def img(key, alt, cls="", h=None, eager=False, sz="(min-width: 900px) 45vw, 100vw"):
-    w, hh = SIZE.get(key, (794, 528))
-    base = ASSET[0] + IMG[key]
-    if key == "logo":
-        srcset = ""
-    else:
-        big, small = (1600, 800) if key == "hero_l" else (794, 480)
-        if cls == "hero-bg":
-            sz = "100vw"
-        srcset = ' srcset="%s %dw, %s %dw" sizes="%s"' % (base.replace(".webp", "-s.webp"), small, base, big, sz)
-    return '<img src="%s"%s alt="%s" width="%d" height="%d"%s%s>' % (
-        base, srcset, e(alt), w, hh, ' fetchpriority="high"' if eager else ' loading="lazy" decoding="async"', ' class="%s"' % cls if cls else "")
-
-
-def ticks(items):
-    return '<ul class="ticks">%s</ul>' % "".join("<li>%s<span>%s</span></li>" % (CHECK, e(x)) for x in items)
-
-
-HOME_GAL = ["g1", "x1", "g2", "x4", "g4", "x3", "g5", "x20", "g6", "x9", "g3", "x24"]
-ALL_GAL = ["g1", "hero", "g3", "x2", "g5", "g6", "about", "x0", "x4", "x5", "x8", "x9", "sd", "smp", "x13", "paud", "x1", "x3", "x24", "x28",
-           "g2", "x18", "x19", "x20", "x21", "x23", "g4", "x25", "x26", "g7"]
-
-
-def gallery_keys(full):
-    return ALL_GAL if full else HOME_GAL
-
-
-def gal_alt(t, lang, key):
-    if key.startswith("g"):
-        return t["gal_alt"][int(key[1:]) - 1]
+def alt(lang, key):
+    if key in ALT and ALT[key]:
+        return ALT[key][0 if lang == "en" else 1]
+    if key == "hero-kids":
+        return T[lang]["hero_alt"]
+    if key == "salam":
+        return T[lang]["salam_alt"]
+    if key.startswith("fac-"):
+        return T[lang]["pages"]["facilities"]["labels"][FACILITIES.index(key)]
+    # foto galeri lama
+    ot = OLDT[lang]
+    if key.startswith("g") and key[1:].isdigit():
+        return ot["gal_alt"][int(key[1:]) - 1]
     if key in XALT:
         return XALT[key][lang]
-    return {"hero": t["hero_alt"], "paud": t["progs"][0][4], "sd": t["progs"][1][4], "smp": t["progs"][2][4], "about": t["about_alt"]}[key]
+    return {"hero": ot["hero_alt"], "paud": ot["progs"][0][4], "sd": ot["progs"][1][4], "smp": ot["progs"][2][4], "about": ot["about_alt"]}[key]
 
 
-def gallery(t, lang, full):
-    return '<div class="gal%s">%s</div>' % (" full" if full else "", "".join(
-        "<figure>%s</figure>" % img(k, gal_alt(t, lang, k), sz="(min-width: 900px) 25vw, (min-width: 600px) 33vw, 50vw") for k in gallery_keys(full)))
+class Ctx:
+    A = ""   # prefix ke akar situs
+
+
+def img(key, alt_text, cls="", eager=False, sizes="(min-width: 900px) 40vw, 100vw"):
+    w, h, folder, sw = SIZES[key]
+    base = "%sassets/img/%s/%s" % (Ctx.A, folder, key)
+    srcset = ' srcset="%s-s.webp %dw, %s.webp %dw" sizes="%s"' % (base, sw, base, w, sizes) if sw else ""
+    return '<img src="%s.webp"%s alt="%s" width="%d" height="%d"%s%s>' % (
+        base, srcset, e(alt_text), w, h, ' fetchpriority="high"' if eager else ' loading="lazy" decoding="async"',
+        ' class="%s"' % cls if cls else "")
+
+
+def png(key, alt_text, cls=""):
+    w, h, _, _ = SIZES[key]
+    return '<img src="%sassets/img/canva/%s.png" alt="%s" width="%d" height="%d" loading="lazy" decoding="async"%s>' % (
+        Ctx.A, key, e(alt_text), w, h, ' class="%s"' % cls if cls else "")
+
+
+def ticks(items, cls="ticks"):
+    return '<ul class="%s">%s</ul>' % (cls, "".join("<li>%s<span>%s</span></li>" % (CHECK, e(x)) for x in items))
+
+
+def chips(items):
+    return '<ul class="chips">%s</ul>' % "".join("<li>%s</li>" % e(x) for x in items)
+
+
+def head(k, h, p=None, cls=""):
+    return '<div class="head %s"><p class="kick">%s</p><h2>%s</h2>%s</div>' % (cls, e(k), e(h), "<p>%s</p>" % e(p) if p else "")
+
+
+def btn_wa(t, cls="btn btn-wa", extra=""):
+    return '<a class="%s" href="%s" target="_blank" rel="noopener">%s<span>%s</span></a>' % (cls, wa(t, extra), WA_ICON, e(t["cta"]))
+
+
+# ------------------------------------------------------------------ blok yang dipakai ulang
+def accr_band(t):
+    lv = [("KB", "kb"), ("TK", "tk"), ("SD", "sd"), ("SMP", "smp")]
+    return ('<div class="accr">%s<div><p class="accr-t">%s</p><p class="accr-s">%s</p><ul class="lvchips">%s</ul></div></div>'
+            % (png("badge-a", t["accr"], "accr-badge"), e(t["accr"]), e(t["accr_sub"]),
+               "".join('<li class="c-%s">%s</li>' % (c, n) for n, c in lv)))
+
+
+def ppdb_flow(t):
+    steps = "".join('<li><span class="num">%d</span><span>%s</span></li>' % (i, e(s)) for i, s in enumerate(t["steps"], 1))
+    return ('<div class="flow"><p class="flow-start">%s</p><ol class="flow-steps">%s</ol><p class="flow-end">%s</p></div>'
+            % (e(t["ppdb_lead"]), steps, e(t["ppdb_end"])))
+
+
+def ppdb_section(t, L, full=False):
+    return f'''<section id="pendaftaran" class="sec ppdb">
+  <div class="wrap two">
+    <div>
+      <p class="kick light">{e(t["ppdb_k"])}</p>
+      <h2>{e(t["ppdb_h"])}</h2>
+      <p class="tag">{e(t["ppdb_tag"])}</p>
+      <p class="lead-l">{e(t["notice"])}.</p>
+      <div class="btns">{btn_wa(t)}<a class="btn btn-light" href="{FORM}" target="_blank" rel="noopener">{e(t["form"])}</a></div>
+      {"" if full else '<p class="more"><a class="link light" href="%s">%s %s</a></p>' % (L("admissions"), e(t["notice_more"]), ARROW)}
+    </div>
+    {ppdb_flow(t)}
+  </div>
+</section>'''
+
+
+def testimonials(t):
+    cards = ""
+    for i, (n, role, q) in enumerate(t["testi"], 1):
+        cards += ('<figure class="testi">%s<blockquote><p>“%s”</p></blockquote><figcaption><strong>%s</strong><span>%s</span></figcaption></figure>'
+                  % (img("testi-%d" % i, n, "testi-img", sizes="96px"), e(q), e(n), e(role)))
+    note = '<p class="small">%s</p>' % e(t["ts_note"]) if t["ts_note"] else ""
+    return '<section class="sec"><div class="wrap">%s<div class="testis">%s</div>%s</div></section>' % (head(t["ts_k"], t["ts_h"]), cards, note)
+
+
+def partners(t):
+    logos = "".join('<li>%s</li>' % png(k, "Logo " + n) for k, n in PARTNERS)
+    return '<section class="sec partners"><div class="wrap">%s<ul class="logos">%s</ul></div></section>' % (head(t["pt_k"], t["pt_h"]), logos)
 
 
 def contact_block(t, W):
     soc = "".join('<li><a href="%s" target="_blank" rel="noopener">%s</a></li>' % (u, n) for n, u in SOCIAL)
+    mails = "".join('<p><a href="mailto:%s"><bdi dir="ltr">%s</bdi></a></p>' % (m, m) for m in EMAILS)
     return f'''<div class="two top">
       <address class="card con">
         <h3>{e(t["addr_h"])}</h3><p>{e(t["addr"])}</p>
         <h3>{e(t["hours_h"])}</h3><p>{e(t["hours"])}</p>
         <h3>{e(t["wa_h"])}</h3><p><a href="{W}" target="_blank" rel="noopener"><bdi dir="ltr">{WA_SHOW}</bdi></a></p>
-        <h3>{e(t["mail_h"])}</h3><p><a href="mailto:{EMAIL}"><bdi dir="ltr">{EMAIL}</bdi></a></p>
+        <h3>{e(t["mail_h"])}</h3>{mails}
         <h3>{e(t["social_h"])}</h3><ul class="soc">{soc}</ul>
         <a class="btn btn-ghost" href="{MAP_LINK}" target="_blank" rel="noopener">{e(t["map_b"])}</a>
       </address>
@@ -95,189 +157,256 @@ def contact_block(t, W):
     </div>'''
 
 
-def steps_html(items):
-    return '<ol class="steps n%d">%s</ol>' % (len(items), "".join(
-        '<li><span class="num" aria-hidden="true">%d</span><div><h3>%s</h3><p>%s</p></div></li>' % (i, e(a), e(b)) for i, (a, b) in enumerate(items, 1)))
+def cta(t):
+    return '<section class="cta"><div class="wrap"><h2>%s</h2><p>%s</p>%s</div></section>' % (e(t["cta_h"]), e(t["cta_p"]), btn_wa(t))
 
 
+# ------------------------------------------------------------------ beranda
 def home_body(t, lang, L, W):
     stats = "".join('<div><dt>%s</dt><dd>%s</dd></div>' % (e(b), e(a)) for a, b in t["stats"])
-    more = lambda pg: '<p class="more"><a class="link" href="%s">%s <span aria-hidden="true" class="arr">→</span></a></p>' % (L(pg), e(t["learn"]))
-    progs = ""
-    for key, (name, sub, p, pts, alt) in zip(["paud", "sd", "smp"], t["progs"]):
-        progs += ('<article class="card prog">%s<div class="card-b"><h3>%s</h3><p class="sub">%s</p><p>%s</p>%s'
-                  '<a class="link" href="%s#%s">%s <span aria-hidden="true" class="arr">→</span></a></div></article>'
-                  % (img(key, alt, sz="(min-width: 900px) 33vw, 100vw"), e(name), e(sub), e(p), ticks(pts), L("programs"), key, e(t["learn"])))
-    best = "".join('<div class="best"><span class="letter" aria-hidden="true">%s</span><h3>%s</h3><p>%s</p></div>' % (a, e(b), e(c)) for a, b, c in t["best"])
-    why = "".join('<div class="why"><h3>%s</h3><p>%s</p></div>' % (e(a), e(b)) for a, b in t["why"])
-    mission = "".join("<li>%s</li>" % e(m) for m in t["mission"])
-    about_p = "".join("<p>%s</p>" % e(p) for p in t["about_p"])
-    quote = next(x for x in P[lang]["about"]["blocks"] if x[0] == "quote")
-    qhtml = block(quote, t, lang, W, 0)
+    why = "".join('<li><span class="n">%d</span><h3>%s</h3><p>%s</p></li>' % (i, e(a), e(b)) for i, (a, b) in enumerate(t["why"], 1))
+    lv = "".join(
+        '<a class="level lv-%s" href="%s#%s"><span class="lv-pic">%s</span><span class="lv-b"><span class="lv-age">%s</span>'
+        '<strong>%s</strong><span class="lv-sub">%s</span><span class="lv-p">%s</span><span class="link">%s %s</span></span></a>'
+        % (k, L("programs"), k, img(k + "-kid", alt(lang, k + "-kid"), sizes="(min-width: 900px) 30vw, 90vw"), e(age), e(n), e(s), e(p), e(t["learn"]), ARROW)
+        for k, n, s, p, age in t["levels"])
+    pg = "".join('<article class="pcard">%s<div><h3>%s</h3><p>%s</p></div></article>'
+                 % (img(k, alt(lang, k), sizes="(min-width: 900px) 30vw, 100vw"), e(n), e(p)) for k, n, p in t["progs"])
+    ach = "".join("<li>%s<span>%s</span></li>" % (CHECK, e(x)) for x in t["ach"][:8])
+    fac = "".join('<figure class="ftile">%s<figcaption>%s</figcaption></figure>'
+                  % (img(k, alt(lang, k), sizes="(min-width: 900px) 25vw, 50vw"), e(alt(lang, k))) for k in FACILITIES[:4])
     return f'''<section class="hero">
-  {img("hero_l", t["hero_alt"], cls="hero-bg", eager=True)}
   <div class="wrap hero-in">
-    <p class="eyebrow">{e(t["welcome"])}</p>
-    <h1>{e(t["school"])}</h1>
-    <p class="lead">{e(t["h1"])}</p>
-    <div class="btns center">
-      <a class="btn btn-wa" href="{W}" target="_blank" rel="noopener">{WA_ICON}<span>{e(t["cta"])}</span></a>
-      <a class="btn btn-ghost" href="{L("programs")}">{e(t["hero_b2"])}</a>
+    <div class="hero-t">
+      <p class="eyebrow">{e(t["welcome"])}</p>
+      <h1>{e(t["h1"])}</h1>
+      <p class="motto">{e(t["motto"])}</p>
+      <p class="lead">{e(t["hero_p"])}</p>
+      <div class="btns">{btn_wa(t)}<a class="btn btn-ghost" href="{L("programs")}">{e(t["hero_b2"])}</a></div>
+      {accr_band(t)}
     </div>
+    <div class="hero-m">{img("hero-kids", t["hero_alt"], eager=True, sizes="(min-width: 900px) 52vw, 100vw")}</div>
   </div>
 </section>
-<section class="notice"><div class="wrap"><p><strong>{e(t["badge"])}</strong> <a href="{L("admissions")}">{e(t["learn"])} <span aria-hidden="true" class="arr">→</span></a></p></div></section>
-<section class="sec intro"><div class="wrap"><p class="kick">{e(t["fact_k"])}</p><p class="bigp">{e(t["hero_p"])}</p><dl class="stats">{stats}</dl></div></section>
-<section id="tentang" class="sec">
+<p class="notice"><a href="{L("admissions")}"><strong>{e(t["notice"])}</strong> <span>{e(t["notice_more"])} {ARROW}</span></a></p>
+<section class="band"><div class="wrap"><dl class="stats">{stats}</dl></div></section>
+<section class="sec">
   <div class="wrap two">
-    <div class="pic">{img("about", t["about_alt"])}</div>
-    <div><p class="kick">{e(t["about_k"])}</p><h2>{e(t["about_h"])}</h2>{about_p}{more("about")}</div>
-  </div>
-  <div class="wrap vm">
-    <div class="card vis"><h3>{e(t["vision_h"])}</h3><p>{e(t["vision"])}</p></div>
-    <div class="card mis"><h3>{e(t["mission_h"])}</h3><ol>{mission}</ol></div>
-  </div>
-</section>
-<section id="program" class="sec alt">
-  <div class="wrap">
-    <div class="head"><p class="kick">{e(t["prog_k"])}</p><h2>{e(t["prog_h"])}</h2><p>{e(t["prog_p"])}</p></div>
-    <div class="grid3">{progs}</div>
-    <div class="head mt"><p class="kick">{e(t["best_k"])}</p><h2>{e(t["best_h"])}</h2></div>
-    <div class="grid4">{best}</div>
-  </div>
-</section>
-{qhtml}
-<section id="fasilitas" class="sec">
-  <div class="wrap">
-    <div class="head"><p class="kick">{e(t["fac_k"])}</p><h2>{e(t["fac_h"])}</h2><p>{e(t["fac_p"])}</p></div>
-    <div class="fac">{ticks(t["fac"])}</div>
-    <div class="whys">{why}</div>
-    {more("facilities")}
-  </div>
-</section>
-<section id="galeri" class="sec alt">
-  <div class="wrap">
-    <div class="head"><p class="kick">{e(t["gal_k"])}</p><h2>{e(t["gal_h"])}</h2></div>
-    {gallery(t, lang, False)}
-    <p class="more"><a class="link" href="{L("gallery")}">{e(t["gal_more"])} <span aria-hidden="true" class="arr">→</span></a></p>
-  </div>
-</section>
-<section id="pendaftaran" class="sec reg">
-  <div class="wrap">
-    <div class="head"><p class="kick">{e(t["reg_k"])}</p><h2>{e(t["reg_h"])}</h2><p>{e(t["reg_p"])}</p></div>
-    {steps_html(t["steps"])}
-    <p class="note">{e(t["reg_note"])}</p>
-    <div class="btns center">
-      <a class="btn btn-wa" href="{W}" target="_blank" rel="noopener">{WA_ICON}<span>{e(t["cta"])}</span></a>
-      <a class="btn btn-light" href="{L("admissions")}">{e(t["learn"])}</a>
+    <div class="pic ring">{img("salam", t["salam_alt"])}</div>
+    <div>
+      <p class="kick">{e(t["salam_k"])}</p><h2>{e(t["salam_h"])}</h2>
+      <p>{e(t["salam_short"])}</p>
+      <p class="sign">{e(t["director"])}<span>{e(t["director_role"])}</span></p>
+      <p class="more"><a class="link" href="{L("about")}">{e(t["learn"])} {ARROW}</a></p>
     </div>
   </div>
 </section>
-<section id="kontak" class="sec">
-  <div class="wrap">
-    <div class="head"><p class="kick">{e(t["con_k"])}</p><h2>{e(t["con_h"])}</h2></div>
-    {contact_block(t, W)}
+<section class="sec soft">
+  <div class="wrap">{head(t["why_k"], t["why_h"])}<ol class="why">{why}</ol></div>
+</section>
+<section id="program" class="sec">
+  <div class="wrap">{head(t["lv_k"], t["lv_h"], t["lv_p"])}<div class="levels">{lv}</div></div>
+</section>
+<section class="sec soft">
+  <div class="wrap">{head(t["pg_k"], t["pg_h"])}<div class="pcards">{pg}</div></div>
+</section>
+<section class="sec">
+  <div class="wrap two">
+    <div>{head(t["ach_k"], t["ach_h"], cls="left")}<ul class="ach">{ach}</ul><p class="small">{e(t["ach_more"])}</p></div>
+    <div><div class="ftiles">{fac}</div><p class="more"><a class="link" href="{L("facilities")}">{e(t["nav"][3])} {ARROW}</a></p></div>
+  </div>
+</section>
+{testimonials(t)}
+{ppdb_section(t, L)}
+{partners(t)}
+<section id="kontak" class="sec soft">
+  <div class="wrap">{head(t["con_k"], t["con_h"], t["con_p"])}{contact_block(t, W)}</div>
+</section>'''
+
+
+# ------------------------------------------------------------------ halaman dalam
+def phero(t, L, p, key, lang):
+    return f'''<section class="phero">
+  <div class="wrap phero-in">
+    <div>
+      <nav class="crumb" aria-label="Breadcrumb"><a href="{L("home")}">{e(t["home"])}</a><span aria-hidden="true">/</span><span aria-current="page">{e(p["title"])}</span></nav>
+      <h1>{e(p["title"])}</h1>
+      <p class="lead">{e(p["intro"])}</p>
+    </div>
+    <div class="phero-pic">{img(key, alt(lang, key), eager=True, sizes="(min-width: 900px) 40vw, 100vw")}</div>
   </div>
 </section>'''
 
 
-def block(b, t, lang, W, i):
-    k = b[0]
-    alt = " alt" if i % 2 else ""
-    sec = lambda inner, cls="": '<section class="sec%s%s"><div class="wrap">%s</div></section>' % (alt, cls, inner)
-    if k == "text":
-        return sec('<div class="prose"><h2>%s</h2>%s</div>' % (e(b[1]), "".join("<p>%s</p>" % e(p) for p in b[2])))
-    if k == "split":
-        return ('<section class="sec%s"><div class="wrap two"><div class="pic">%s</div><div><h2>%s</h2>%s</div></div></section>'
-                % (alt, img(b[3], b[4]), e(b[1]), "".join("<p>%s</p>" % e(p) for p in b[2])))
-    if k == "facts":
-        return sec('<div class="head"><h2>%s</h2></div><dl class="stats big">%s</dl>' % (e(b[1]), "".join('<div><dt>%s</dt><dd><bdi>%s</bdi></dd></div>' % (e(l), e(n)) for n, l in b[2])))
-    if k == "cards":
-        intro = '<p>%s</p>' % e(b[2]) if b[2] else ""
-        return sec('<div class="head"><h2>%s</h2>%s</div><div class="cards c%d">%s</div>' % (
-            e(b[1]), intro, len(b[3]), "".join('<div class="best"><h3>%s</h3><p>%s</p></div>' % (e(a), e(c)) for a, c in b[3])))
-    if k == "list":
-        return sec('<div class="head"><h2>%s</h2></div><div class="fac one">%s</div>' % (e(b[1]), ticks(b[3])))
-    if k == "level":
-        _, lid, name, sub, desc, facts, pts, ik, ialt = b
-        fx = "".join('<div><dt>%s</dt><dd>%s</dd></div>' % (e(a), e(c)) for a, c in facts)
-        return ('<section id="%s" class="sec%s"><div class="wrap two level"><div class="pic">%s</div><div><p class="kick">%s</p><h2>%s</h2><p>%s</p>'
-                '<dl class="kv" aria-label="%s">%s</dl>%s<a class="btn btn-wa sm" href="%s" target="_blank" rel="noopener">%s<span>%s</span></a></div></div></section>'
-                % (lid, alt, img(ik, ialt), e(sub), e(name), e(desc), e(t["facts_l"]), fx, ticks(pts), wa(t, " (" + name + ")"), WA_ICON, e(t["more"])))
-    if k == "photos":
-        return '<div class="strip">%s</div>' % "".join(img(x, gal_alt(t, lang, x), sz="(min-width: 600px) 33vw, 100vw") for x in b[1])
-    if k == "steps":
-        return '<section class="sec reg"><div class="wrap"><div class="head"><h2>%s</h2></div>%s<div class="btns center"><a class="btn btn-wa" href="%s" target="_blank" rel="noopener">%s<span>%s</span></a><a class="btn btn-light" href="%s" target="_blank" rel="noopener">%s</a></div></div></section>' % (
-            e(b[1]), steps_html(b[2]), W, WA_ICON, e(t["cta"]), FORM, e(t["reg_b2"]))
-    if k == "faq":
-        return sec('<div class="head"><h2>%s</h2></div><div class="faq">%s</div>' % (e(b[1]), "".join(
-            "<details><summary>%s</summary><p>%s</p></details>" % (e(q), e(a)) for q, a in b[2])))
-    if k == "quote":
-        return sec('<figure class="quote"><blockquote><p>%s</p></blockquote><figcaption><strong><bdi>%s</bdi></strong><span>%s</span></figcaption></figure>' % (e(b[1]), e(b[2]), e(b[3])))
-    if k == "note":
-        return '<div class="wrap"><p class="pnote">%s</p></div>' % e(b[1])
-    if k == "gallery":
-        return sec(gallery(t, lang, True))
-    if k == "contact":
-        return sec(contact_block(t, W))
-    raise ValueError(k)
-
-
-def inner_body(pg, t, lang, L, W):
-    p = P[lang][pg]
-    out = f'''<section class="phero">
-  {img(HERO_IMG[pg], gal_alt(t, lang, HERO_IMG[pg]), cls="hero-bg", eager=True)}
-  <div class="wrap">
-    <nav class="crumb" aria-label="Breadcrumb"><a href="{L("home")}">{e(t["home"])}</a><span aria-hidden="true">/</span><span aria-current="page">{e(p["title"])}</span></nav>
-    <h1>{e(p["title"])}</h1>
-    <p class="lead">{e(p["intro"])}</p>
+def about_body(t, lang, L, W):
+    p = t["pages"]["about"]
+    salam = "".join("<p>%s</p>" % e(x) for x in t["salam_full"])
+    fnd = "".join('<li>%s<strong>%s</strong><span>%s</span></li>' % (img("founder-%d" % i, n, "round", sizes="120px"), e(n), e(p["roles"][r]))
+                  for i, (n, r) in enumerate(FOUNDERS, 1))
+    mission = "".join("<li>%s</li>" % e(m) for m in p["mission"])
+    return phero(t, L, p, "building", lang) + f'''
+<section class="sec">
+  <div class="wrap two">
+    <div class="pic ring">{img("salam", t["salam_alt"])}</div>
+    <div><p class="kick">{e(t["salam_k"])}</p><h2>{e(t["salam_h"])}</h2>{salam}
+      <p class="sign">{e(t["salam_sign"])} {e(t["director"])}<span>{e(t["director_role"])}</span></p></div>
   </div>
 </section>
-'''
-    i = 0
-    for b in p["blocks"]:
-        out += block(b, t, lang, W, i) + "\n"
-        if b[0] not in ("note", "photos"):
-            i += 1
-    if pg not in ("admissions",):
-        out += f'''<section class="cta"><div class="wrap"><h2>{e(t["cta_h"])}</h2><p>{e(t["cta_p"])}</p>
-<a class="btn btn-wa" href="{W}" target="_blank" rel="noopener">{WA_ICON}<span>{e(t["cta"])}</span></a></div></section>
-'''
-    return out
+<section class="band"><div class="wrap"><dl class="stats">{"".join('<div><dt>%s</dt><dd>%s</dd></div>' % (e(b), e(a)) for a, b in t["stats"])}</dl></div></section>
+<section class="sec">
+  <div class="wrap narrow"><h2>{e(p["hist_h"])}</h2>{"".join("<p>%s</p>" % e(x) for x in p["hist"])}</div>
+</section>
+<section class="sec soft">
+  <div class="wrap"><div class="head"><h2>{e(p["founders_h"])}</h2></div><ul class="founders">{fnd}</ul></div>
+</section>
+<section class="sec">
+  <div class="wrap narrow"><h2>{e(p["profile_h"])}</h2><p>{e(p["profile"])}</p></div>
+  <div class="wrap vm">
+    <div class="card vis"><h3>{e(p["vision_h"])}</h3><p>{e(p["vision"])}</p></div>
+    <div class="card mis"><h3>{e(p["mission_h"])}</h3><ol>{mission}</ol></div>
+  </div>
+</section>
+<section class="sec soft">
+  <div class="wrap two">
+    <div><h2>{e(p["teachers_h"])}</h2><p>{e(p["teachers"])}</p></div>
+    <div class="pic ring">{img("language", alt(lang, "language"))}</div>
+  </div>
+</section>
+{testimonials(t)}
+{cta(t)}'''
 
 
+def level_block(t, lang, k, d, P, alt_cls):
+    facts = '<dl class="kv"><div><dt>%s</dt><dd>%s</dd></div>' % (e(P["lv_hours"]), e(d["hours"])) if isinstance(d.get("hours"), str) else '<dl class="kv">'
+    if isinstance(d.get("hours"), list):
+        facts += "".join('<div><dt>%s</dt><dd>%s</dd></div>' % (e(a), e(b)) for a, b in d["hours"])
+    if d.get("entry"):
+        facts += '<div><dt>%s</dt><dd>%s</dd></div>' % (e(P["lv_entry"]), e(d["entry"]))
+    facts += "</dl>"
+    prof = "".join('<li><h4>%s</h4><p>%s</p></li>' % (e(a), e(b)) for a, b in d["profile"])
+    extra = ""
+    if d.get("sentra"):
+        sent = "".join('<figure>%s<figcaption>%s</figcaption></figure>' % (img(s, alt(lang, s), sizes="(min-width: 900px) 28vw, 100vw"), e(c)) for s, c in d["sentras"])
+        extra += '<div class="sentra"><h3>%s</h3><p>%s</p><div class="sentras">%s</div></div>' % (e(d["sentra_h"]), e(d["sentra"]), sent)
+    lists = ""
+    for lab, key in ((P["lv_subjects"], "subjects"), (P["lv_clubs"], "clubs"), (P["lv_extra"], "extra"), (P["lv_progs"], "progs")):
+        if d.get(key):
+            lists += '<div class="lst"><h3>%s</h3>%s</div>' % (e(lab), chips(d[key]))
+    return f'''<section id="{k}" class="sec lvsec lv-{k}{alt_cls}">
+  <div class="wrap">
+    <div class="lvhead">
+      <div class="lvpic">{img(k + "-kid", alt(lang, k + "-kid"), sizes="(min-width: 900px) 30vw, 70vw")}</div>
+      <div><p class="kick">{e(d["sub"])}</p><h2>{e(d["name"])}</h2>{facts}{btn_wa(t, "btn btn-wa sm", " (" + d["name"] + ")")}</div>
+    </div>
+    {extra}
+    <h3 class="sub-h">{e(P["lv_profile"])}</h3>
+    <ul class="prof">{prof}</ul>
+    <div class="lists">{lists}</div>
+  </div>
+</section>'''
+
+
+def programs_body(t, lang, L, W):
+    P = t["pages"]["programs"]
+    best = "".join('<li><span class="letter" aria-hidden="true">%s</span><h3>%s</h3><p>%s</p></li>' % (a, e(b), e(c)) for a, b, c in P["best"])
+    pg = "".join('<article class="pcard">%s<div><h3>%s</h3><p>%s</p></div></article>'
+                 % (img(k, alt(lang, k), sizes="(min-width: 900px) 30vw, 100vw"), e(n), e(p)) for k, n, p in t["progs"])
+    nav = "".join('<a href="#%s" class="c-%s">%s</a>' % (k, k, e(P[k]["name"])) for k in ("paud", "sd", "smp"))
+    return phero(t, L, P, "narasi", lang) + f'''
+<nav class="jump" aria-label="{e(P["title"])}"><div class="wrap">{nav}</div></nav>
+<section class="sec">
+  <div class="wrap">
+    <div class="head"><h2>{e(P["cur_h"])}</h2></div>
+    <div class="two top">
+      <div class="card pad"><h3>{e(P["nat_h"])}</h3>{"".join("<p>%s</p>" % e(x) for x in P["nat"])}</div>
+      <div class="card pad"><h3>{e(P["best_h"])}</h3><p>{e(P["best_p"])}</p></div>
+    </div>
+    <ul class="best">{best}</ul>
+  </div>
+</section>
+<section class="sec soft">
+  <div class="wrap narrow"><h2>{e(P["quran_h"])}</h2><p>{e(P["quran"])}</p></div>
+</section>
+{level_block(t, lang, "paud", P["paud"], P, "")}
+{level_block(t, lang, "sd", P["sd"], P, " soft")}
+{level_block(t, lang, "smp", P["smp"], P, "")}
+<section class="sec soft">
+  <div class="wrap">{head(t["pg_k"], t["pg_h"])}<div class="pcards">{pg}</div></div>
+</section>
+{cta(t)}'''
+
+
+def facilities_body(t, lang, L, W):
+    P = t["pages"]["facilities"]
+    tiles = "".join('<figure class="ftile">%s<figcaption>%s</figcaption></figure>'
+                    % (img(k, P["labels"][i], sizes="(min-width: 900px) 30vw, (min-width: 600px) 45vw, 100vw"), e(P["labels"][i]))
+                    for i, k in enumerate(FACILITIES))
+    return phero(t, L, P, "fac-sport", lang) + f'''
+<section class="sec"><div class="wrap"><div class="ftiles big">{tiles}</div></div></section>
+{cta(t)}'''
+
+
+def gallery_body(t, lang, L, W):
+    P = t["pages"]["gallery"]
+    keys = NEW_GAL + OLD_GAL
+    g = "".join("<figure>%s</figure>" % img(k, alt(lang, k), sizes="(min-width: 900px) 25vw, 50vw") for k in keys)
+    return phero(t, L, P, "leadership", lang) + f'''
+<section class="sec"><div class="wrap"><div class="gal">{g}</div><p class="small center">{e(P["note"])}</p></div></section>
+{cta(t)}'''
+
+
+def admissions_body(t, lang, L, W):
+    P = t["pages"]["admissions"]
+    req = "".join('<div><dt>%s</dt><dd>%s</dd></div>' % (e(a), e(b)) for a, b in P["req"])
+    faq = "".join("<details><summary>%s</summary><p>%s</p></details>" % (e(q), e(a)) for q, a in P["faq"])
+    return phero(t, L, P, "literacy", lang) + ppdb_section(t, L, full=True) + f'''
+<section class="sec">
+  <div class="wrap two top">
+    <div><h2>{e(P["req_h"])}</h2><dl class="kv">{req}</dl></div>
+    <div><h2>{e(P["docs_h"])}</h2>{ticks(P["docs"])}</div>
+  </div>
+</section>
+<section class="sec soft"><div class="wrap narrow"><h2>{e(P["faq_h"])}</h2><div class="faq">{faq}</div></div></section>
+{partners(t)}'''
+
+
+def contact_body(t, lang, L, W):
+    P = t["pages"]["contact"]
+    return phero(t, L, P, "building", lang) + '<section class="sec"><div class="wrap">%s</div></section>' % contact_block(t, W)
+
+
+BODY = dict(home=home_body, about=about_body, programs=programs_body, facilities=facilities_body,
+            gallery=gallery_body, admissions=admissions_body, contact=contact_body)
+
+
+# ------------------------------------------------------------------ halaman
 def page(lang, pg):
     t = T[lang]
     here = upath(lang, pg)
     url = DOMAIN + here
     L = lambda to: rel(here, upath(lang, to))
     A = rel(here, "/")
-    A = "" if A == "./" else A
+    Ctx.A = "" if A == "./" else A
     W = wa(t)
-    ASSET[0] = A
     if pg == "home":
-        title, desc, og_img, og_alt_t = t["title"], t["desc"], DOMAIN + "/assets/img/og.jpg", t["hero_alt"]
+        title, desc = t["title"], t["desc"]
     else:
-        p = P[lang][pg]
-        title, desc = p["meta_t"], p["meta_d"]
-        og_img, og_alt_t = DOMAIN + "/assets/img/og.jpg", t["hero_alt"]
-    fonts = ("Tajawal:wght@400;500;700;800" if lang == "ar"
-             else "Manrope:wght@400..800")
+        title, desc = t["pages"][pg]["meta_t"], t["pages"][pg]["meta_d"]
     alts = "".join('<link rel="alternate" hreflang="%s" href="%s%s">\n' % (l, DOMAIN, upath(l, pg)) for l in LANGS)
     alts += '<link rel="alternate" hreflang="x-default" href="%s%s">\n' % (DOMAIN, upath("en", pg))
-    og_loc = "".join('<meta property="og:locale:alternate" content="%s">\n' % T[l]["og_locale"] for l in LANGS if l != lang)
     ld = {"@context": "https://schema.org", "@type": "School", "name": "Mutiara School Bali", "alternateName": "Sekolah Mutiara Bali",
-          "url": DOMAIN + T[lang]["path"], "logo": DOMAIN + "/" + IMG["logo"], "image": DOMAIN + "/assets/img/og.jpg", "email": EMAIL, "telephone": "+" + WA,
-          "foundingDate": "2016-05-02", "description": T[lang]["desc"],
+          "url": DOMAIN + "/", "logo": DOMAIN + "/assets/img/canva/crest.png", "image": DOMAIN + "/assets/img/og.jpg",
+          "email": EMAILS[0], "telephone": "+" + WA, "foundingDate": "2016-05-02", "description": T[lang]["desc"],
           "address": {"@type": "PostalAddress", "streetAddress": "Jl. Lingkar Timur Udayana No. 8", "addressLocality": "Jimbaran, Kuta Selatan",
                       "addressRegion": "Bali", "postalCode": "80361", "addressCountry": "ID"},
           "geo": {"@type": "GeoCoordinates", "latitude": -8.7953327, "longitude": 115.1782181}, "sameAs": [u for _, u in SOCIAL]}
     navl = "".join('<li><a href="%s"%s>%s</a></li>' % (L(x), ' aria-current="page"' if x == pg else "", e(n)) for x, n in zip(PAGES, t["nav"]))
     sw = "".join('<a href="%s" lang="%s" hreflang="%s"%s>%s</a>' % (rel(here, upath(l, pg)), l, l, ' aria-current="true"' if l == lang else "",
-                                                               {"id": "ID", "en": "EN", "ar": "العربية"}[l]) for l in LANGS)
-    body = home_body(t, lang, L, W) if pg == "home" else inner_body(pg, t, lang, L, W)
+                                                               {"id": "ID", "en": "EN"}[l]) for l in LANGS)
+    body = BODY[pg](t, lang, L, W)
+    soc = "".join('<li><a href="%s" target="_blank" rel="noopener">%s</a></li>' % (u, n) for n, u in SOCIAL)
     return f'''<!DOCTYPE html>
-<html lang="{lang}" dir="{t["dir"]}">
+<html lang="{lang}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -289,30 +418,30 @@ def page(lang, pg):
 <meta property="og:title" content="{e(title)}">
 <meta property="og:description" content="{e(desc)}">
 <meta property="og:url" content="{url}">
-<meta property="og:image" content="{og_img}">
-<meta property="og:image:alt" content="{e(og_alt_t)}">
+<meta property="og:image" content="{DOMAIN}/assets/img/og.jpg">
+<meta property="og:image:alt" content="{e(t["hero_alt"])}">
 <meta property="og:locale" content="{t["og_locale"]}">
-{og_loc}<meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#0c6b3c">
-<link rel="icon" href="{A}favicon.ico" sizes="any">
-<link rel="icon" href="{A}assets/img/favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="{A}assets/img/apple-touch-icon.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#2e9f45">
+<link rel="icon" href="{Ctx.A}favicon.ico" sizes="any">
+<link rel="icon" href="{Ctx.A}assets/img/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="{Ctx.A}assets/img/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family={fonts}&display=swap">
-<link rel="stylesheet" href="{A}assets/css/style.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="{Ctx.A}assets/css/style.css">
 <script type="application/ld+json">{json.dumps(ld, ensure_ascii=False)}</script>
 </head>
-<body id="top">
+<body>
 <a class="skip" href="#main">{e(t["skip"])}</a>
 <header class="hdr">
   <div class="wrap hdr-in">
-    <a class="brand" href="{L("home")}"><span class="crest">{img("logo", t["logo_alt"], eager=True)}</span><span class="bname" dir="ltr"><b>Mutiara School</b><small>Bali · Jimbaran</small></span></a>
+    <a class="brand" href="{L("home")}">{png("crest", t["logo_alt"], "crest")}<span class="bname"><b>Mutiara School</b><small>Bali · Jimbaran</small></span></a>
     <button class="burger" type="button" aria-expanded="false" aria-controls="nav" aria-label="{e(t["menu"])}"><span></span><span></span><span></span></button>
     <nav id="nav" class="nav" aria-label="{e(t["menu"])}">
       <ul>{navl}</ul>
       <div class="lang" role="group" aria-label="{e(t["lang_label"])}">{sw}</div>
-      <a class="btn btn-wa sm" href="{W}" target="_blank" rel="noopener">{WA_ICON}<span>{e(t["cta"])}</span></a>
+      {btn_wa(t, "btn btn-wa sm")}
     </nav>
   </div>
 </header>
@@ -322,52 +451,32 @@ def page(lang, pg):
 <footer class="ftr">
   <div class="wrap">
     <div class="fgrid">
-      <div><h2>Mutiara School Bali</h2><p class="fsub">Jimbaran</p><p class="motto">{e(t["foot"].split("·")[-1].strip())}</p><p>{e(t["addr"])}</p></div>
+      <div class="fbrand">{png("crest", t["logo_alt"], "crest")}<div><h2>Mutiara School Bali</h2><p class="motto-f">{e(t["motto"])}</p><p>{e(t["addr"])}</p></div></div>
       <nav aria-label="{e(t["foot_nav"])}"><h3>{e(t["foot_nav"])}</h3><ul>{"".join('<li><a href="%s">%s</a></li>' % (L(x), e(n)) for x, n in zip(PAGES, t["nav"]))}</ul></nav>
-      <div><h3>{e(t["con_k"])}</h3><p><a href="{W}" target="_blank" rel="noopener"><bdi dir="ltr">{WA_SHOW}</bdi></a></p><p><a href="mailto:{EMAIL}"><bdi dir="ltr">{EMAIL}</bdi></a></p><p>{e(t["hours"])}</p></div>
-      <div><h3>{e(t["social_h"])}</h3><ul>{"".join('<li><a href="%s" target="_blank" rel="noopener">%s</a></li>' % (u, n) for n, u in SOCIAL)}</ul></div>
+      <div><h3>{e(t["con_k"])}</h3><p><a href="{W}" target="_blank" rel="noopener"><bdi dir="ltr">{WA_SHOW}</bdi></a></p>{"".join('<p><a href="mailto:%s">%s</a></p>' % (m, m) for m in EMAILS)}<p>{e(t["hours"])}</p></div>
+      <div><h3>{e(t["social_h"])}</h3><ul>{soc}</ul></div>
     </div>
     <p class="copy">© <span id="yr">2026</span> Mutiara School Bali. {e(t["rights"])}</p>
   </div>
 </footer>
 <a class="fab" href="{W}" target="_blank" rel="noopener" aria-label="{e(t["wa_float"])}">{WA_ICON}</a>
-<script src="{A}assets/js/main.js" defer></script>
+<script src="{Ctx.A}assets/js/main.js" defer></script>
 </body>
 </html>
 '''
 
 
-def favicons():
-    from PIL import Image, ImageDraw
-    d = os.path.join(OUT, "assets", "img")
-    os.makedirs(d, exist_ok=True)
-    with open(os.path.join(d, "favicon.svg"), "w") as f:
-        f.write('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0c6b3c"/>'
-                '<path d="M32 10 50 16v16c0 12-8 19-18 22-10-3-18-10-18-22V16Z" fill="#fdd100"/>'
-                '<circle cx="32" cy="31" r="9" fill="#0c6b3c"/><circle cx="32" cy="31" r="4" fill="#fdd100"/></svg>')
-    S = 512; k = S / 64
-    im = Image.new("RGBA", (S, S), (0, 0, 0, 0)); dr = ImageDraw.Draw(im)
-    dr.rounded_rectangle([0, 0, S - 1, S - 1], radius=112, fill="#0c6b3c")
-    dr.polygon([(32*k, 10*k), (50*k, 16*k), (50*k, 34*k), (44*k, 46*k), (32*k, 54*k), (20*k, 46*k), (14*k, 34*k), (14*k, 16*k)], fill="#fdd100")
-    dr.ellipse([23*k, 22*k, 41*k, 40*k], fill="#0c6b3c"); dr.ellipse([28*k, 27*k, 36*k, 35*k], fill="#fdd100")
-    im.resize((180, 180), Image.LANCZOS).save(os.path.join(d, "apple-touch-icon.png"))
-    im.save(os.path.join(OUT, "favicon.ico"), sizes=[(16, 16), (32, 32), (48, 48)])
-
-
+# ------------------------------------------------------------------ aset
 HTACCESS = """ErrorDocument 404 /404.html
 
-# Kompresi teks
 <IfModule mod_deflate.c>
   AddOutputFilterByType DEFLATE text/html text/css application/javascript text/javascript image/svg+xml application/xml text/xml application/json text/plain
 </IfModule>
-
-# Cache browser: gambar/css/js lama, halaman HTML singkat
 <IfModule mod_expires.c>
   ExpiresActive On
   ExpiresByType image/webp "access plus 1 year"
   ExpiresByType image/jpeg "access plus 1 year"
   ExpiresByType image/png "access plus 1 year"
-  ExpiresByType image/svg+xml "access plus 1 year"
   ExpiresByType image/x-icon "access plus 1 year"
   ExpiresByType text/css "access plus 1 month"
   ExpiresByType application/javascript "access plus 1 month"
@@ -389,23 +498,45 @@ def minify_css(c):
 
 def assets():
     from PIL import Image
-    src = os.path.join(ROOT, "src", "assets")
-    os.makedirs(os.path.join(OUT, "assets", "css")); os.makedirs(os.path.join(OUT, "assets", "js")); os.makedirs(os.path.join(OUT, "assets", "img", "foto"))
+    for d in ("css", "js", "img/foto", "img/canva"):
+        os.makedirs(os.path.join(OUT, "assets", d), exist_ok=True)
     with open(os.path.join(OUT, "assets", "css", "style.css"), "w") as f:
-        f.write(minify_css(open(os.path.join(src, "css", "style.css")).read()))
-    js = open(os.path.join(src, "js", "main.js")).read()
-    with open(os.path.join(OUT, "assets", "js", "main.js"), "w") as f:
-        f.write(re.sub(r"\n\s*", "", re.sub(r"\s*([{}();,=<>?:+])\s*", r"\1", js)).replace("functionf", "function f").replace("returnh", "return h"))
-    fd = os.path.join(src, "img", "foto")
-    for fn in sorted(os.listdir(fd)):
-        im = Image.open(os.path.join(fd, fn)).convert("RGB"); k = fn[:-4]
-        small = 800 if k == "hero-l" else 480
-        im.save(os.path.join(OUT, "assets", "img", "foto", k + ".webp"), "WEBP", quality=68 if k == "hero-l" else 72, method=6)
-        im.resize((small, round(im.height * small / im.width)), Image.LANCZOS).save(os.path.join(OUT, "assets", "img", "foto", k + "-s.webp"), "WEBP", quality=70, method=6)
-        if k == "hero-l":
-            im.resize((1200, round(im.height * 1200 / im.width)), Image.LANCZOS).crop((0, 37, 1200, 667)).save(os.path.join(OUT, "assets", "img", "og.jpg"), quality=80, optimize=True, progressive=True)
-    c = Image.open(os.path.join(src, "img", "crest.png")).convert("RGB")
-    c.resize((96, round(c.height * 96 / c.width)), Image.LANCZOS).save(os.path.join(OUT, "assets", "img", "crest.webp"), "WEBP", quality=90, method=6)
+        f.write(minify_css(open(os.path.join(SRC, "css", "style.css")).read()))
+    shutil.copy(os.path.join(SRC, "js", "main.js"), os.path.join(OUT, "assets", "js", "main.js"))
+    for folder in ("foto", "canva"):
+        fd = os.path.join(SRC, "img", folder)
+        for fn in sorted(os.listdir(fd)):
+            k, ext = os.path.splitext(fn)
+            if folder == "foto" and k == "hero-l":
+                continue
+            im = Image.open(os.path.join(fd, fn))
+            dst = os.path.join(OUT, "assets", "img", folder, k)
+            if ext == ".png":   # logo, lencana, mitra: tetap PNG transparan
+                im.save(dst + ".png", optimize=True)
+                SIZES[k] = (im.width, im.height, folder, 0)
+                continue
+            im = im.convert("RGB")
+            big = 1400 if k == "hero-kids" else im.width
+            if im.width > big:
+                im = im.resize((big, round(im.height * big / im.width)), Image.LANCZOS)
+            im.save(dst + ".webp", "WEBP", quality=74, method=6)
+            sw = 760 if k == "hero-kids" else (0 if im.width <= 520 else 480)
+            if sw:
+                im.resize((sw, round(im.height * sw / im.width)), Image.LANCZOS).save(dst + "-s.webp", "WEBP", quality=72, method=6)
+            SIZES[k] = (im.width, im.height, folder, sw)
+    # gambar OG 1200x630 dari foto sampul Canva
+    h = Image.open(os.path.join(SRC, "img", "canva", "hero-kids.jpg")).convert("RGB")
+    w = 1200; hh = round(h.height * w / h.width); h = h.resize((w, hh), Image.LANCZOS)
+    top = max(0, (hh - 630) // 2); h.crop((0, top, 1200, top + 630)).save(os.path.join(OUT, "assets", "img", "og.jpg"), quality=80, optimize=True)
+    # favicon dari lambang asli
+    cr = Image.open(os.path.join(SRC, "img", "canva", "crest.png")).convert("RGBA")
+    def icon(sz, pad):
+        bg = Image.new("RGBA", (sz, sz), (255, 255, 255, 255))
+        c = cr.copy(); c.thumbnail((sz - 2 * pad, sz - 2 * pad), Image.LANCZOS)
+        bg.paste(c, ((sz - c.width) // 2, (sz - c.height) // 2), c); return bg
+    icon(180, 14).convert("RGB").save(os.path.join(OUT, "assets", "img", "apple-touch-icon.png"))
+    icon(64, 3).save(os.path.join(OUT, "assets", "img", "favicon.png"))
+    icon(48, 2).save(os.path.join(OUT, "favicon.ico"), sizes=[(16, 16), (32, 32), (48, 48)])
 
 
 def main():
@@ -417,15 +548,11 @@ def main():
         for l in LANGS:
             d = os.path.join(OUT, upath(l, pg).strip("/"))
             os.makedirs(d, exist_ok=True)
-            out = page(l, pg)
-            if l == "ar":  # rentang angka (jam, kelas) tetap terbaca kiri-ke-kanan di teks RTL
-                out = re.sub(r"(\d[\d:.]*) ?– ?(\d[\d:.]*)", "\u2066\\1–\\2\u2069", out)
             with open(os.path.join(d, "index.html"), "w", encoding="utf-8") as f:
-                f.write(out)
+                f.write(page(l, pg))
             links = "".join('    <xhtml:link rel="alternate" hreflang="%s" href="%s%s"/>\n' % (x, DOMAIN, upath(x, pg)) for x in LANGS)
             links += '    <xhtml:link rel="alternate" hreflang="x-default" href="%s%s"/>\n' % (DOMAIN, upath("en", pg))
             urls += "  <url>\n    <loc>%s%s</loc>\n%s  </url>\n" % (DOMAIN, upath(l, pg), links)
-    favicons()
     with open(os.path.join(OUT, "sitemap.xml"), "w") as f:
         f.write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
                 'xmlns:xhtml="http://www.w3.org/1999/xhtml">\n%s</urlset>\n' % urls)
@@ -434,11 +561,10 @@ def main():
     with open(os.path.join(OUT, "404.html"), "w", encoding="utf-8") as f:
         f.write('<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
                 '<meta name="robots" content="noindex"><title>Page not found – Mutiara School Bali</title><link rel="stylesheet" href="/assets/css/style.css"></head>'
-                '<body><main class="phero" style="min-height:100vh"><div class="wrap"><h1>Page not found</h1><p class="lead">Halaman tidak ditemukan</p>'
+                '<body><main class="sec"><div class="wrap narrow"><h1>Page not found</h1><p>Halaman tidak ditemukan.</p>'
                 '<p class="btns"><a class="btn btn-wa" href="/">Home</a><a class="btn btn-ghost" href="/id/">Beranda</a></p></div></main></body></html>')
     with open(os.path.join(OUT, ".htaccess"), "w") as f:
         f.write(HTACCESS)
-    # untuk GitHub Pages
     with open(os.path.join(OUT, "CNAME"), "w") as f:
         f.write("mutiaraschool.com\n")
     open(os.path.join(OUT, ".nojekyll"), "w").close()

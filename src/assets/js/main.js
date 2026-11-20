@@ -15,9 +15,3 @@
   var y = document.getElementById('yr');
   if (y) y.textContent = new Date().getFullYear();
 })();
-(function () {
-  var h = document.querySelector('.hdr');
-  if (!h) return;
-  function f() { h.classList.toggle('scrolled', window.scrollY > 40); }
-  f(); window.addEventListener('scroll', f, { passive: true });
-})();
