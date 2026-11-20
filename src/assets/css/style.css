@@ -402,3 +402,77 @@ p{margin:0 0 1em}
   .lang a{min-height:32px}
   .hdr-cta{width:auto;min-height:38px}
 }
+
+/* ================= Palet minimal: navy + putih + abu, hijau hanya aksen ================= */
+:root{--soft:#f5f6f7;--gs:#f1f3f4;--line:#e4e7ea;--sh:0 14px 34px -26px rgba(23,23,61,.45)}
+h2{color:var(--navy)}
+.kick,.partners .kick,.lvsec .kick{color:var(--mut)}
+.kick::before{background:var(--g)}
+.eyebrow{color:var(--mut)}
+.motto{color:var(--mut)}
+.hero{background:#fff}
+.notice{background:var(--soft)}
+.notice a{color:var(--navy)}
+.accr{border:1px solid var(--line)}
+.accr-t{color:var(--navy)}
+.lvchips li{background:#fff;color:var(--navy);border:1px solid var(--line)}
+.band{background:var(--soft);background-image:none;color:var(--navy);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.band .stats dd{color:var(--navy)}
+.band .stats dt{color:var(--mut)}
+.ring{padding:0}
+.ring::before{display:none}
+.why .n,.letter{background:var(--soft);color:var(--navy)}
+.level{border-top:1px solid var(--line);box-shadow:none;border:1px solid var(--line)}
+.lv-pic{background:#f3f5f4}
+.lv-age{background:var(--soft);color:var(--mut)}
+.pcard,.testi,.why li{box-shadow:none;border:1px solid var(--line)}
+.pcard div{border-top:0}
+.card.pad{border-top:1px solid var(--line)}
+.card.pad h3,.best h3,.mis h3,.lvsec h2,.sub-h,.lst h3,.sentra h3,.prof h4,.testi strong{color:var(--navy)}
+.ach svg,.ticks svg{background:none;color:var(--g);padding:0}
+.ftile figcaption{background:rgba(23,23,61,.78)}
+.sentras figure{background:var(--navy)}
+.ppdb{background:var(--soft);background-image:none;color:var(--ink)}
+.ppdb h2{color:var(--navy)}
+.ppdb .kick.light{color:var(--mut)}
+.ppdb .lead-l{color:var(--mut)}
+.ppdb .tag{background:#fff;border:1px solid var(--line);color:var(--navy)}
+.ppdb .btn-light{color:var(--navy);border-color:var(--navy)}
+.ppdb .btn-light:hover{background:var(--navy);color:#fff}
+.ppdb .link.light{color:var(--navy)}
+.flow-start{border-color:var(--line);color:var(--navy)}
+.flow-end{background:var(--navy)}
+.flow-steps li{background:#fff;border:1px solid var(--line)}
+.num{background:var(--soft);color:var(--navy);border:1px solid var(--line)}
+.partners h2{color:var(--navy)}
+.logos img{filter:grayscale(1);opacity:.75;transition:filter .2s,opacity .2s}
+.logos li:hover img{filter:none;opacity:1}
+.phero{background:var(--soft);color:var(--ink);border-bottom:1px solid var(--line)}
+.phero h1{color:var(--navy)}
+.phero .lead{color:var(--mut)}
+.crumb{color:var(--mut)}
+.crumb a{color:var(--g2)}
+.vis{background:var(--navy)}
+.kv div{border-left:2px solid var(--line)}
+.jump a{background:#fff!important;color:var(--navy);border:1px solid var(--line)}
+.soc a{background:#fff;border:1px solid var(--line)}
+.cta{background:var(--soft)}
+.ftr{background-image:none;border-top:0;background-color:#14142f}
+.vis h3,.ftr h3,.motto-f{color:#aeb3cc}
+.btn-wa{box-shadow:none}
+.btn-ghost{border-color:var(--line);color:var(--navy)}
+.btn-ghost:hover{background:var(--soft)}
+.link,.link .arr{color:var(--navy)}
+.link .arr{background:var(--soft)}
+
+/* pilihan bahasa di header, di samping tombol menu (HP) */
+.hdr-in .lang{display:inline-flex;align-items:center;gap:0;margin:0 0 0 auto;color:var(--mut)}
+.hdr-in .lang .globe{margin-right:.3rem;flex:none}
+.hdr-in .lang a{min-height:44px;padding:.2rem .45rem;font-size:.8rem}
+.burger{margin-left:.35rem}
+@media (min-width:1120px){
+  .hdr-in{justify-content:flex-start}
+  .nav{margin-left:auto}
+  .hdr-in .lang{order:3;margin-left:1rem}
+  .hdr-in .lang a{min-height:32px}
+}

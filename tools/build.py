@@ -23,6 +23,8 @@ WA_ICON = ('<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" f
            'stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 0 0-7.8 13.5L3 21l4.6-1.2A9 9 0 1 0 12 3Z"/><path d="M9 8.5c0 3.5 3 6.5 6.5 6.5"/></svg>')
 CHECK = ('<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.8" '
          'stroke-linecap="round" stroke-linejoin="round" d="m5 12.5 4.5 4.5L19 7.5"/></svg>')
+GLOBE = ('<svg class="globe" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8">'
+         '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3Z"/></svg>')
 ARROW = '<span class="arr" aria-hidden="true">→</span>'
 OLD_GAL = ["g1", "hero", "g3", "x2", "g5", "g6", "about", "x0", "x4", "x5", "x8", "x9", "sd", "smp", "x13", "paud", "x1", "x3",
            "x24", "x28", "g2", "x18", "x19", "x20", "x21", "x23", "g4", "x25", "x26", "g7"]
@@ -437,10 +439,10 @@ def page(lang, pg):
 <header class="hdr">
   <div class="wrap hdr-in">
     <a class="brand" href="{L("home")}">{png("crest", t["logo_alt"], "crest")}<span class="bname"><b>Mutiara School</b><small>Bali · Jimbaran</small></span></a>
+    <div class="lang" role="group" aria-label="{e(t["lang_label"])}">{GLOBE}{sw}</div>
     <button class="burger" type="button" aria-expanded="false" aria-controls="nav" aria-label="{e(t["menu"])}"><span></span><span></span><span></span></button>
     <nav id="nav" class="nav" aria-label="{e(t["menu"])}">
       <ul>{navl}</ul>
-      <div class="lang" role="group" aria-label="{e(t["lang_label"])}">{sw}</div>
       <a class="hdr-cta" href="{W}" target="_blank" rel="noopener">{e(t["cta_short_h"])}</a>
     </nav>
   </div>
