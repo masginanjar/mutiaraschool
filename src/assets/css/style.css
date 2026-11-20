@@ -476,3 +476,26 @@ h2{color:var(--navy)}
   .hdr-in .lang{order:3;margin-left:1rem}
   .hdr-in .lang a{min-height:32px}
 }
+
+/* ================= Hero: foto gedung sekolah + 3 siswa tanpa latar ================= */
+.hero2{position:relative;isolation:isolate;overflow:hidden;background:var(--navy);padding:2.5rem 0 0;color:#fff}
+.hero2 .hero-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 40%;z-index:-2}
+.hero2::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(16,18,40,.72) 0%,rgba(16,18,40,.55) 55%,rgba(16,18,40,.35) 100%)}
+.hero2 .hero-in{display:grid;gap:1rem;align-items:end}
+.hero2 h1{color:#fff;text-shadow:0 2px 18px rgba(0,0,0,.35)}
+.hero2 .eyebrow,.hero2 .motto{color:#d9e2ea}
+.hero2 .lead{color:#eef2f6}
+.hero2 .btns{margin:1.25rem 0 1.25rem}
+.hero2 .btn-light{border-color:rgba(255,255,255,.8);color:#fff}
+.hero2 .btn-light:hover{background:#fff;color:var(--navy)}
+.hero2 .accr{background:rgba(255,255,255,.96);border:0;color:var(--ink)}
+.hero2 .hero-t{padding-bottom:.5rem}
+.hero-kids{margin-inline:auto;width:min(100%,520px)}
+.hero-kids img{width:100%;height:auto;display:block;filter:drop-shadow(0 10px 30px rgba(0,0,0,.35))}
+@media (min-width:900px){
+  .hero2{padding-top:3.5rem}
+  .hero2 .hero-in{grid-template-columns:1fr 1fr;gap:2rem}
+  .hero2 .hero-t{padding-bottom:3.5rem}
+  .hero2::after{background:linear-gradient(90deg,rgba(16,18,40,.8) 0%,rgba(16,18,40,.6) 45%,rgba(16,18,40,.15) 100%)}
+  .hero-kids{width:100%;max-width:640px;margin-right:0}
+}

@@ -177,17 +177,18 @@ def home_body(t, lang, L, W):
     ach = "".join("<li>%s<span>%s</span></li>" % (CHECK, e(x)) for x in t["ach"][:8])
     fac = "".join('<figure class="ftile">%s<figcaption>%s</figcaption></figure>'
                   % (img(k, alt(lang, k), sizes="(min-width: 900px) 25vw, 50vw"), e(alt(lang, k))) for k in FACILITIES[:4])
-    return f'''<section class="hero">
+    return f'''<section class="hero hero2">
+  {img("hero-l", alt(lang, "building"), "hero-bg", eager=True, sizes="100vw")}
   <div class="wrap hero-in">
     <div class="hero-t">
       <p class="eyebrow">{e(t["welcome"])}</p>
       <h1>{e(t["h1"])}</h1>
       <p class="motto">{e(t["motto"])}</p>
       <p class="lead">{e(t["hero_p"])}</p>
-      <div class="btns">{btn_wa(t)}<a class="btn btn-ghost" href="{L("programs")}">{e(t["hero_b2"])}</a></div>
+      <div class="btns">{btn_wa(t)}<a class="btn btn-light" href="{L("programs")}">{e(t["hero_b2"])}</a></div>
       {accr_band(t)}
     </div>
-    <div class="hero-m">{img("hero-kids", t["hero_alt"], eager=True, sizes="(min-width: 900px) 52vw, 100vw")}</div>
+    <div class="hero-kids">{img("kids-cut", t["hero_alt"], eager=True, sizes="(min-width: 900px) 46vw, 100vw")}</div>
   </div>
 </section>
 <p class="notice"><a href="{L("admissions")}"><strong>{e(t["notice"])}</strong> <span>{e(t["notice_more"])} {ARROW}</span></a></p>
@@ -509,10 +510,14 @@ def assets():
         fd = os.path.join(SRC, "img", folder)
         for fn in sorted(os.listdir(fd)):
             k, ext = os.path.splitext(fn)
-            if folder == "foto" and k == "hero-l":
-                continue
             im = Image.open(os.path.join(fd, fn))
             dst = os.path.join(OUT, "assets", "img", folder, k)
+            if k == "kids-cut":   # foto 3 siswa tanpa latar (transparan)
+                im = im.convert("RGBA"); big = im.resize((1100, round(im.height * 1100 / im.width)), Image.LANCZOS)
+                big.save(dst + ".webp", "WEBP", quality=82, method=6)
+                big.resize((620, round(big.height * 620 / big.width)), Image.LANCZOS).save(dst + "-s.webp", "WEBP", quality=80, method=6)
+                SIZES[k] = (big.width, big.height, folder, 620)
+                continue
             if ext == ".png":   # logo, lencana, mitra: tetap PNG transparan
                 im.save(dst + ".png", optimize=True)
                 SIZES[k] = (im.width, im.height, folder, 0)
