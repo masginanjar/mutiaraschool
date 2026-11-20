@@ -527,3 +527,11 @@ h1,h2{font-weight:800;letter-spacing:-.03em}
 h3,h4{font-weight:700;letter-spacing:-.01em}
 .kick,.eyebrow{letter-spacing:.13em;font-weight:800}
 body{line-height:1.65}
+
+/* foto tiga siswa di hero lebih tinggi */
+.hero-kids{width:min(100%,470px)}
+@media (min-width:900px){
+  .hero2 .hero-in{grid-template-columns:1fr 1.1fr}
+  .hero-kids{max-width:none;width:100%;margin-top:-1rem}
+  .hero-kids img{width:auto;height:min(560px,62vh);min-height:470px;margin-left:auto}
+}
