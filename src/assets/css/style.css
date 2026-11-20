@@ -329,3 +329,49 @@ p{margin:0 0 1em}
   .nav .btn{width:auto;white-space:nowrap}
 }
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+
+/* ================= Palet profesional: hanya hijau Mutiara + navy + netral ================= */
+:root{--tk:var(--g2);--sd:var(--g2);--sd2:var(--g2);--smp:var(--g2);--kb:var(--g2)}
+.kick{background:none;color:var(--g2);padding:0;border-radius:0;letter-spacing:.14em;font-size:.76rem}
+.kick::before{content:"";display:inline-block;width:22px;height:2px;background:var(--g);vertical-align:middle;margin-right:.55rem}
+.head .kick::before{display:none}
+.kick.light,.partners .kick{background:none;color:#cfe9d5}
+.lvsec .kick{background:none;color:var(--mut)}
+.motto{background:none;color:var(--g2);padding:0;font-weight:600;letter-spacing:.06em;font-size:.95rem}
+.notice{background:var(--gs);border-bottom:1px solid var(--line)}
+.notice a{color:var(--g3)}
+.link .arr{background:var(--gs);color:var(--g2)}
+.lvchips li{background:var(--gs);color:var(--g2);border:1px solid #cde6d3}
+.stats dd{color:#fff}
+.stats dt{color:#b9bfd9}
+.band{border-top:0;border-bottom:0}
+.ring::before{background:var(--gs)}
+.testi{border:1px solid var(--line);box-shadow:var(--sh)}
+.testi-img{border:3px solid var(--gs)}
+.founders .round{border:3px solid var(--gs)}
+.tag{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3)}
+.flow{border:1px solid var(--line)}
+.partners{background:var(--soft)}
+.partners h2{color:var(--g2)}
+.partners .head p:last-child{color:var(--mut)}
+.partners .kick{color:var(--g2)}
+.logos{border:1px solid var(--line)}
+.phero{border-bottom:0;background-image:none;background:var(--g3)}
+.phero-pic img{border:0}
+.crumb a{color:#fff;text-decoration:underline}
+.vis h3,.ftr h3,.motto-f{color:#cfe9d5}
+.level{border-top:4px solid var(--g)}
+.lv-age{background:var(--gs);color:var(--g2)}
+.lv-b strong{color:var(--navy)}
+.jump a{background:var(--gs)!important;color:var(--g2)}
+.prof li{border:1px solid var(--line)}
+.prof h4{background:none;color:var(--g2);padding:0;font-size:.95rem}
+.sentras figure{background:var(--g3)}
+.lvpic img{border-bottom:0}
+.kv div{border-left:3px solid var(--g)}
+.lvsec h2,.sub-h,.lst h3,.sentra h3{color:var(--g2)}
+.ftile figcaption{background:rgba(21,92,37,.85)}
+.letter{background:var(--gs);color:var(--g2)}
+.why .n{background:var(--gs);color:var(--g2)}
+.hdr{border-bottom:1px solid var(--line)}
+.skip{background:var(--g);color:#fff}
