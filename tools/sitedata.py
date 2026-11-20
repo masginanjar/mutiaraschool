@@ -30,7 +30,7 @@ FOUNDERS = [  # urutan & foto sesuai halaman Sejarah di prospektus
     ("Imam Wahyudi, M.H", "secretary"), ("Rahman Saleh", "treasurer"),
 ]
 PARTNERS = [("p-shareedu", "ShareEdu Indonesia"), ("p-wafa", "Wafa"), ("p-ef", "EF"), ("p-dsm", "DSM Dompet Sosial"),
-            ("p-plasticpay", "Plasticpay"), ("p-ecobali", "ecoBali")]
+            ("p-plasticpay", "Plasticpay"), ("p-ecobali", "ecoBali"), ("p-fee", "FEE Center (Future English Education Center)")]
 FACILITIES = ["fac-lantai1", "fac-lantai2", "fac-sport", "fac-sd", "fac-paud", "fac-smp", "fac-parking", "fac-toilet",
               "fac-playground", "fac-basket", "fac-podcast"]
 
