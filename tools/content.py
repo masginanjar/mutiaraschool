@@ -59,7 +59,7 @@ T = {}
 
 T["id"] = dict(
     path="/id/", dir="ltr", og_locale="id_ID", lang_name="Bahasa Indonesia",
-    title="Mutiara School Bali – PAUD, SD & SMP di Jimbaran",
+    title="Mutiara School International Oriented – PAUD, SD & SMP di Jimbaran, Bali",
     desc="Mutiara School Bali di Jimbaran: PAUD, SD, dan SMP dengan Kurikulum Nasional dan Kurikulum B.E.S.T, pendidikan karakter, serta fasilitas lengkap. Pendaftaran 2027/2028 dibuka.",
     skip="Langsung ke konten", menu="Menu", lang_label="Pilih bahasa",
     nav=["Beranda", "Tentang Kami", "Program", "Fasilitas", "Galeri", "Pendaftaran", "Kontak"],
@@ -139,7 +139,7 @@ T["id"] = dict(
 
 T["en"] = dict(
     path="/", dir="ltr", og_locale="en_US", lang_name="English",
-    title="Mutiara School Bali – Preschool, Primary & Junior High in Jimbaran",
+    title="Mutiara School International Oriented – Preschool, Primary & Junior High in Jimbaran, Bali",
     desc="Mutiara School Bali in Jimbaran offers preschool, primary and junior high education with the National Curriculum and the B.E.S.T curriculum, character education and complete facilities. 2027/2028 enrolment is open.",
     skip="Skip to content", menu="Menu", lang_label="Choose language",
     nav=["Home", "About Us", "Programmes", "Facilities", "Gallery", "Admissions", "Contact"],
@@ -301,6 +301,6 @@ T["en"].update(learn="Learn more", cta_h="Ready to join Mutiara School?", cta_p=
 T["id"].update(learn="Selengkapnya", cta_h="Siap bergabung dengan Mutiara School?", cta_p="Hubungi tim kami lewat WhatsApp untuk info pendaftaran, biaya, dan kunjungan sekolah.", home="Beranda", foot_nav="Halaman situs", gal_more="Lihat galeri lengkap", facts_l="Rincian jenjang")
 T["ar"].update(learn="المزيد", cta_h="هل أنتم مستعدون للانضمام إلى مدرسة موتيارا؟", cta_p="راسلوا فريقنا عبر واتساب لمعرفة تفاصيل التسجيل والرسوم وزيارة المدرسة.", home="الرئيسية", foot_nav="صفحات الموقع", gal_more="شاهد المعرض كاملاً", facts_l="تفاصيل المرحلة")
 
-T["en"].update(welcome="Welcome to", school="Mutiara School Bali", fact_k="Mutiara at a glance")
-T["id"].update(welcome="Selamat datang di", school="Mutiara School Bali", fact_k="Sekilas Mutiara")
+T["en"].update(welcome="Welcome to", school="Mutiara School International Oriented", fact_k="Mutiara at a glance")
+T["id"].update(welcome="Selamat datang di", school="Mutiara School International Oriented", fact_k="Sekilas Mutiara")
 T["ar"].update(welcome="مرحباً بكم في", school="Mutiara School Bali", fact_k="موتيارا في لمحة")
