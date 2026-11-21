@@ -388,7 +388,7 @@ def bdate(p, fmt="%d %B %Y"):
 
 
 def bpath(p):
-    return "/blog/%s/" % p["slug"]
+    return "/news/%s/" % p["slug"]
 
 
 def bcard(t, here, p):
@@ -432,7 +432,7 @@ def article_body(t, L, W, p):
     d1, d2 = bdate(p, "%Y-%m-%d"), bdate(p)
     return f'''<article class="post">
   <div class="wrap narrow">
-    <nav class="crumb" aria-label="Breadcrumb"><a href="{L("home")}">{e(t["home"])}</a><span aria-hidden="true">/</span><a href="{L("blog")}">Blog</a></nav>
+    <nav class="crumb" aria-label="Breadcrumb"><a href="{L("home")}">{e(t["home"])}</a><span aria-hidden="true">/</span><a href="{L("blog")}">News</a></nav>
     <h1>{e(p["title"])}</h1>
     <p class="pmeta"><time datetime="{d1}">{d2}</time> &middot; {e(t["blog_on"])}</p>
     <figure class="pfeat">{img(k, a, eager=True, sizes="(min-width: 760px) 640px, 100vw")}</figure>
