@@ -9,6 +9,8 @@ from urllib.parse import quote
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from sitedata import *  # noqa  (tools/sitedata.py)
+from blogdata import POSTS  # noqa  (tools/blogdata.py)
+import datetime
 sys.path.insert(0, os.path.join(HERE, "old"))
 from pages import XALT  # alt teks foto galeri lama  # noqa
 from content import T as OLDT  # noqa
@@ -220,6 +222,7 @@ def home_body(t, lang, L, W):
   </div>
 </section>
 {testimonials(t)}
+{blog_section(t, L, upath(lang, "home"))}
 {ppdb_section(t, L)}
 {partners(t)}
 <section id="kontak" class="sec soft">
@@ -378,35 +381,124 @@ def contact_body(t, lang, L, W):
     return phero(t, L, P, "building", lang) + '<section class="sec"><div class="wrap">%s</div></section>' % contact_block(t, W)
 
 
+# ------------------------------------------------------------------ blog
+def bdate(p, fmt="%d %B %Y"):
+    d = datetime.datetime.strptime(p["ts"], "%Y-%m-%dT%H:%M:%SZ") + datetime.timedelta(hours=8)  # WITA
+    return d.strftime(fmt).lstrip("0")
+
+
+def bpath(p):
+    return "/blog/%s/" % p["slug"]
+
+
+def bcard(t, here, p):
+    k, a = p["imgs"][0]
+    return ('<article class="bcard" lang="en"><a href="%s"><span class="bc-pic">%s</span><span class="bc-b"><time datetime="%s">%s</time><h3>%s</h3>'
+            '<span class="bc-p">%s</span><span class="link">%s %s</span></span></a></article>'
+            % (rel(here, bpath(p)), img(k, a, sizes="(min-width: 900px) 30vw, 100vw"), bdate(p, "%Y-%m-%d"), bdate(p),
+               e(p["title"]), e(p["meta"]), e(t["blog_read"]), ARROW))
+
+
+def blog_section(t, L, here):
+    cards = "".join(bcard(t, here, p) for p in POSTS[:3])
+    return f'''<section class="sec blogsec">
+  <div class="wrap">{head(t["blog_k"], t["blog_h"], t["blog_p"])}<div class="bcards">{cards}</div>
+  <p class="more center"><a class="btn btn-ghost" href="{L("blog")}">{e(t["blog_all"])}</a></p></div>
+</section>'''
+
+
+def blog_body(t, lang, L, W):
+    P = t["pages"]["blog"]
+    here = upath(lang, "blog")
+    cards = "".join(bcard(t, here, p) for p in POSTS)
+    return phero(t, L, P, "narasi", lang) + f'''
+<section class="sec"><div class="wrap"><div class="bcards">{cards}</div></div></section>
+{cta(t)}'''
+
+
+def article_body(t, L, W, p):
+    here = bpath(p)
+    k, a = p["imgs"][0]
+    paras = "".join("<p>%s</p>" % e(x) for x in p["paras"])
+    facts = ""
+    if p.get("facts"):
+        facts = '<dl class="kv">%s</dl>' % "".join('<div><dt>%s</dt><dd>%s</dd></div>' % (e(x), e(y)) for x, y in p["facts"])
+    gal = ""
+    if len(p["imgs"]) > 1:
+        gal = '<div class="agal">%s</div>' % "".join('<figure>%s</figure>' % img(kk, aa, sizes="(min-width: 900px) 30vw, 50vw") for kk, aa in p["imgs"][1:])
+    reg = ('<a class="btn btn-ghost" href="%s" target="_blank" rel="noopener">%s</a>' % (e(FORM), e(t["blog_reg"]))) if p.get("register") else ""
+    src = "https://www.instagram.com/%s/%s/" % ("reel" if p["kind"] == "Reel" else "p", p["code"])
+    more = "".join(bcard(t, here, q) for q in [q for q in POSTS if q is not p][:3])
+    d1, d2 = bdate(p, "%Y-%m-%d"), bdate(p)
+    return f'''<article class="post">
+  <div class="wrap narrow">
+    <nav class="crumb" aria-label="Breadcrumb"><a href="{L("home")}">{e(t["home"])}</a><span aria-hidden="true">/</span><a href="{L("blog")}">Blog</a></nav>
+    <h1>{e(p["title"])}</h1>
+    <p class="pmeta"><time datetime="{d1}">{d2}</time> &middot; {e(t["blog_on"])}</p>
+    <figure class="pfeat">{img(k, a, eager=True, sizes="(min-width: 760px) 640px, 100vw")}</figure>
+    <div class="pbody">{paras}{facts}</div>
+    {gal}
+    <p class="psrc">{e(t["blog_src"])}: <a href="{src}" target="_blank" rel="noopener">@sekolahmutiarabali, {e(d2)}</a></p>
+    <p class="btns">{btn_wa(t)}{reg}</p>
+    <p><a class="link" href="{L("blog")}">&larr; {e(t["blog_back"])}</a></p>
+  </div>
+</article>
+<section class="sec soft"><div class="wrap"><h2>{e(t["blog_more"])}</h2><div class="bcards">{more}</div></div></section>'''
+
+
+def tracker():
+    """Catatan unggahan Instagram yang sudah jadi artikel (dipakai agar tidak dobel)."""
+    import csv
+    os.makedirs(os.path.join(ROOT, "content"), exist_ok=True)
+    with open(os.path.join(ROOT, "content", "blog-tracker.csv"), "w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        w.writerow(["instagram_url", "instagram_date_wita", "type", "article_title", "images_used", "article_url", "status", "processed_date", "notes"])
+        for p in sorted(POSTS, key=lambda q: q["ts"]):
+            src = "https://www.instagram.com/%s/%s/" % ("reel" if p["kind"] == "Reel" else "p", p["code"])
+            w.writerow([src, bdate(p, "%Y-%m-%d %H:%M"), p["kind"], p["title"], " | ".join(k + ".webp" for k, _ in p["imgs"]),
+                        DOMAIN + bpath(p), "published", p["processed"], p.get("note", "")])
+
+
 BODY = dict(home=home_body, about=about_body, programs=programs_body, facilities=facilities_body,
-            gallery=gallery_body, admissions=admissions_body, contact=contact_body)
+            gallery=gallery_body, admissions=admissions_body, blog=blog_body, contact=contact_body)
 
 
 # ------------------------------------------------------------------ halaman
-def page(lang, pg):
+def page(lang, pg, art=None):
     t = T[lang]
-    here = upath(lang, pg)
+    here = bpath(art) if art else upath(lang, pg)
     url = DOMAIN + here
     L = lambda to: rel(here, upath(lang, to))
     A = rel(here, "/")
     Ctx.A = "" if A == "./" else A
     W = wa(t)
-    if pg == "home":
+    if art:
+        title, desc = art["title"] + " | Mutiara School Bali", art["meta"]
+    elif pg == "home":
         title, desc = t["title"], t["desc"]
     else:
         title, desc = t["pages"][pg]["meta_t"], t["pages"][pg]["meta_d"]
     alts = "".join('<link rel="alternate" hreflang="%s" href="%s%s">\n' % (l, DOMAIN, upath(l, pg)) for l in LANGS)
     alts += '<link rel="alternate" hreflang="x-default" href="%s%s">\n' % (DOMAIN, upath("en", pg))
+    if art:
+        alts = '<link rel="alternate" hreflang="en" href="%s%s">\n' % (DOMAIN, here)
+    ogimg = "%s/assets/img/blog/%s.webp" % (DOMAIN, art["imgs"][0][0]) if art else DOMAIN + "/assets/img/og.jpg"
+    ogalt = art["imgs"][0][1] if art else t["hero_alt"]
     ld = {"@context": "https://schema.org", "@type": "School", "name": "Mutiara School Bali", "alternateName": "Sekolah Mutiara Bali",
           "url": DOMAIN + "/", "logo": DOMAIN + "/assets/img/canva/crest.png", "image": DOMAIN + "/assets/img/og.jpg",
           "email": EMAILS[0], "telephone": "+" + WA, "foundingDate": "2016-05-02", "description": T[lang]["desc"],
           "address": {"@type": "PostalAddress", "streetAddress": "Jl. Lingkar Timur Udayana No. 8", "addressLocality": "Jimbaran, Kuta Selatan",
                       "addressRegion": "Bali", "postalCode": "80361", "addressCountry": "ID"},
           "geo": {"@type": "GeoCoordinates", "latitude": -8.7953327, "longitude": 115.1782181}, "sameAs": [u for _, u in SOCIAL]}
+    if art:
+        ld = {"@context": "https://schema.org", "@type": "BlogPosting", "headline": art["title"], "description": art["meta"],
+              "datePublished": art["ts"], "image": ogimg, "inLanguage": "en", "mainEntityOfPage": url,
+              "author": {"@type": "Organization", "name": "Mutiara School Bali"},
+              "publisher": {"@type": "Organization", "name": "Mutiara School Bali", "logo": {"@type": "ImageObject", "url": DOMAIN + "/assets/img/canva/crest.png"}}}
     navl = "".join('<li><a href="%s"%s>%s</a></li>' % (L(x), ' aria-current="page"' if x == pg else "", e(n)) for x, n in zip(PAGES, t["nav"]))
     sw = "".join('<a href="%s" lang="%s" hreflang="%s"%s>%s</a>' % (rel(here, upath(l, pg)), l, l, ' aria-current="true"' if l == lang else "",
                                                                {"id": "ID", "en": "EN"}[l]) for l in LANGS)
-    body = BODY[pg](t, lang, L, W)
+    body = article_body(t, L, W, art) if art else BODY[pg](t, lang, L, W)
     soc = "".join('<li><a href="%s" target="_blank" rel="noopener">%s</a></li>' % (u, n) for n, u in SOCIAL)
     return f'''<!DOCTYPE html>
 <html lang="{lang}">
@@ -416,13 +508,13 @@ def page(lang, pg):
 <title>{e(title)}</title>
 <meta name="description" content="{e(desc)}">
 <link rel="canonical" href="{url}">
-{alts}<meta property="og:type" content="website">
+{alts}<meta property="og:type" content="{"article" if art else "website"}">
 <meta property="og:site_name" content="Mutiara School Bali">
 <meta property="og:title" content="{e(title)}">
 <meta property="og:description" content="{e(desc)}">
 <meta property="og:url" content="{url}">
-<meta property="og:image" content="{DOMAIN}/assets/img/og.jpg">
-<meta property="og:image:alt" content="{e(t["hero_alt"])}">
+<meta property="og:image" content="{ogimg}">
+<meta property="og:image:alt" content="{e(ogalt)}">
 <meta property="og:locale" content="{t["og_locale"]}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#2e9f45">
@@ -501,12 +593,12 @@ def minify_css(c):
 
 def assets():
     from PIL import Image
-    for d in ("css", "js", "img/foto", "img/canva"):
+    for d in ("css", "js", "img/foto", "img/canva", "img/blog"):
         os.makedirs(os.path.join(OUT, "assets", d), exist_ok=True)
     with open(os.path.join(OUT, "assets", "css", "style.css"), "w") as f:
         f.write(minify_css(open(os.path.join(SRC, "css", "style.css")).read()))
     shutil.copy(os.path.join(SRC, "js", "main.js"), os.path.join(OUT, "assets", "js", "main.js"))
-    for folder in ("foto", "canva"):
+    for folder in ("foto", "canva", "blog"):
         fd = os.path.join(SRC, "img", folder)
         for fn in sorted(os.listdir(fd)):
             k, ext = os.path.splitext(fn)
@@ -560,6 +652,13 @@ def main():
             links = "".join('    <xhtml:link rel="alternate" hreflang="%s" href="%s%s"/>\n' % (x, DOMAIN, upath(x, pg)) for x in LANGS)
             links += '    <xhtml:link rel="alternate" hreflang="x-default" href="%s%s"/>\n' % (DOMAIN, upath("en", pg))
             urls += "  <url>\n    <loc>%s%s</loc>\n%s  </url>\n" % (DOMAIN, upath(l, pg), links)
+    for p in POSTS:
+        d = os.path.join(OUT, bpath(p).strip("/"))
+        os.makedirs(d, exist_ok=True)
+        with open(os.path.join(d, "index.html"), "w", encoding="utf-8") as f:
+            f.write(page("en", "blog", p))
+        urls += "  <url>\n    <loc>%s%s</loc>\n    <lastmod>%s</lastmod>\n  </url>\n" % (DOMAIN, bpath(p), bdate(p, "%Y-%m-%d"))
+    tracker()
     with open(os.path.join(OUT, "sitemap.xml"), "w") as f:
         f.write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
                 'xmlns:xhtml="http://www.w3.org/1999/xhtml">\n%s</urlset>\n' % urls)

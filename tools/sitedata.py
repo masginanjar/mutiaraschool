@@ -19,10 +19,10 @@ SOCIAL = [
 ]
 LANGS = ["en", "id"]
 SLUG = {
-    "en": dict(about="about", programs="programmes", facilities="facilities", gallery="gallery", admissions="admissions", contact="contact"),
-    "id": dict(about="tentang-kami", programs="program", facilities="fasilitas", gallery="galeri", admissions="pendaftaran", contact="kontak"),
+    "en": dict(about="about", programs="programmes", facilities="facilities", gallery="gallery", admissions="admissions", blog="blog", contact="contact"),
+    "id": dict(about="tentang-kami", programs="program", facilities="fasilitas", gallery="galeri", admissions="pendaftaran", blog="blog", contact="kontak"),
 }
-PAGES = ["home", "about", "programs", "facilities", "gallery", "admissions", "contact"]
+PAGES = ["home", "about", "programs", "facilities", "gallery", "admissions", "blog", "contact"]
 
 FOUNDERS = [  # urutan & foto sesuai halaman Sejarah di prospektus
     ("H. Mudjiono, S.Pd.I", "founder_chair"), ("H. Turmudi", "founder_board"), ("H. Abdur Rahman", "founder_board"),
@@ -39,7 +39,7 @@ T = {}
 # ============================================================== ENGLISH
 T["en"] = dict(
     path="/", og_locale="en_US", name="English",
-    nav=["Home", "About", "Programmes", "Facilities", "Gallery", "Admissions", "Contact"],
+    nav=["Home", "About", "Programmes", "Facilities", "Gallery", "Admissions", "Blog", "Contact"],
     skip="Skip to content", menu="Menu", lang_label="Choose language",
     cta="Enrol via WhatsApp", cta_short="WhatsApp", cta_short_h="Enrol now", form="Online Form", learn="Learn more", home="Home",
     wa_msg="Hello Mutiara School, I would like to ask about new student enrolment.",
@@ -265,7 +265,7 @@ T["en"]["pages"] = dict(
 # ============================================================== INDONESIA
 T["id"] = dict(
     path="/id/", og_locale="id_ID", name="Bahasa Indonesia",
-    nav=["Beranda", "Tentang Kami", "Program", "Fasilitas", "Galeri", "Pendaftaran", "Kontak"],
+    nav=["Beranda", "Tentang Kami", "Program", "Fasilitas", "Galeri", "Pendaftaran", "Blog", "Kontak"],
     skip="Langsung ke konten", menu="Menu", lang_label="Pilih bahasa",
     cta="Daftar via WhatsApp", cta_short="WhatsApp", cta_short_h="Daftar", form="Formulir Online", learn="Selengkapnya", home="Beranda",
     wa_msg="Halo Mutiara School, saya ingin bertanya tentang pendaftaran siswa baru.",
@@ -492,3 +492,16 @@ ALT = {
     "sentra-cook": ("Children placing cookies on a tray at the cooking sentra", "Anak-anak menata kue di loyang pada Sentra Memasak"),
     "sentra-block": ("A boy building with wooden blocks at the blocks sentra", "Anak bermain balok kayu di Sentra Balok"),
 }
+
+
+# ---- Blog (artikel berbahasa Inggris dari Instagram)
+T["en"].update(blog_k="School news", blog_h="Latest from our blog", blog_p="Stories and announcements from Mutiara School Bali, based on our official Instagram.",
+               blog_all="See all articles", blog_read="Read article", blog_src="Source: Instagram post", blog_on="Published on Instagram",
+               blog_back="Back to blog", blog_more="More articles", blog_reg="Register online", blog_lang_note="")
+T["id"].update(blog_k="Kabar sekolah", blog_h="Artikel terbaru di blog", blog_p="Cerita dan pengumuman Mutiara School Bali dari Instagram resmi kami. Artikel ditulis dalam bahasa Inggris.",
+               blog_all="Lihat semua artikel", blog_read="Baca artikel", blog_src="Sumber: unggahan Instagram", blog_on="Diunggah di Instagram",
+               blog_back="Kembali ke blog", blog_more="Artikel lainnya", blog_reg="Daftar online", blog_lang_note="Artikel ditulis dalam bahasa Inggris.")
+T["en"]["pages"]["blog"] = dict(title="Blog", intro="News, events and everyday moments at Mutiara School Bali, written from our official Instagram posts.",
+    meta_t="Blog – School News & Events | Mutiara School Bali", meta_d="News, events and student activities at Mutiara School Bali in Jimbaran, from preschool to junior high, based on our official Instagram.")
+T["id"]["pages"]["blog"] = dict(title="Blog", intro="Kabar, kegiatan, dan momen sehari-hari di Mutiara School Bali, ditulis dari unggahan Instagram resmi kami. Artikel tersedia dalam bahasa Inggris.",
+    meta_t="Blog – Kabar & Kegiatan Sekolah | Mutiara School Bali", meta_d="Kabar dan kegiatan siswa Mutiara School Bali di Jimbaran, dari PAUD sampai SMP, berdasarkan Instagram resmi sekolah.")

@@ -73,6 +73,18 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://mutiaraschool.com/admissions/"/>
   </url>
   <url>
+    <loc>https://mutiaraschool.com/blog/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mutiaraschool.com/blog/"/>
+    <xhtml:link rel="alternate" hreflang="id" href="https://mutiaraschool.com/id/blog/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mutiaraschool.com/blog/"/>
+  </url>
+  <url>
+    <loc>https://mutiaraschool.com/id/blog/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mutiaraschool.com/blog/"/>
+    <xhtml:link rel="alternate" hreflang="id" href="https://mutiaraschool.com/id/blog/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mutiaraschool.com/blog/"/>
+  </url>
+  <url>
     <loc>https://mutiaraschool.com/contact/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://mutiaraschool.com/contact/"/>
     <xhtml:link rel="alternate" hreflang="id" href="https://mutiaraschool.com/id/kontak/"/>
@@ -83,5 +95,45 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://mutiaraschool.com/contact/"/>
     <xhtml:link rel="alternate" hreflang="id" href="https://mutiaraschool.com/id/kontak/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://mutiaraschool.com/contact/"/>
+  </url>
+  <url>
+    <loc>https://mutiaraschool.com/blog/paud-hajj-simulation/</loc>
+    <lastmod>2026-11-20</lastmod>
+  </url>
+  <url>
+    <loc>https://mutiaraschool.com/blog/jhs-theater-rri-pro-1-denpasar/</loc>
+    <lastmod>2026-11-20</lastmod>
+  </url>
+  <url>
+    <loc>https://mutiaraschool.com/blog/friday-reminder-spread-kindness/</loc>
+    <lastmod>2026-11-20</lastmod>
+  </url>
+  <url>
+    <loc>https://mutiaraschool.com/blog/world-childrens-day-2026/</loc>
+    <lastmod>2026-11-20</lastmod>
+  </url>
+  <url>
+    <loc>https://mutiaraschool.com/blog/grade-6-scientific-proposal-presentations/</loc>
+    <lastmod>2026-11-19</lastmod>
+  </url>
+  <url>
+    <loc>https://mutiaraschool.com/blog/new-student-observation-and-interview/</loc>
+    <lastmod>2026-11-18</lastmod>
+  </url>
+  <url>
+    <loc>https://mutiaraschool.com/blog/why-parents-choose-mutiara-school/</loc>
+    <lastmod>2026-11-17</lastmod>
+  </url>
+  <url>
+    <loc>https://mutiaraschool.com/blog/munaqosyah-2026/</loc>
+    <lastmod>2026-11-17</lastmod>
+  </url>
+  <url>
+    <loc>https://mutiaraschool.com/blog/paud-outing-bali-zoo-2026/</loc>
+    <lastmod>2026-11-16</lastmod>
+  </url>
+  <url>
+    <loc>https://mutiaraschool.com/blog/sd-outing-2026/</loc>
+    <lastmod>2026-11-11</lastmod>
   </url>
 </urlset>

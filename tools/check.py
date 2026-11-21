@@ -52,7 +52,7 @@ for dp, _, fs in os.walk(ROOT):
                         t = os.path.join(t, "index.html")
                     if not os.path.exists(t):
                         errors.append("LINK rusak di %s: %s" % (rel, href))
-            if fn != "404.html" and (not re.search(r'hreflang="en"', raw) or not re.search(r'hreflang="id"', raw)):
+            if fn != "404.html" and not re.match(r"blog/[^/]+/index\.html$", rel.replace(os.sep, "/")) and (not re.search(r'hreflang="en"', raw) or not re.search(r'hreflang="id"', raw)):
                 errors.append("hreflang tidak lengkap di %s" % rel)
 
 print("Diperiksa: %d file di %s" % (n, ROOT))
